@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AES Security Lab — Hệ Thống Đào Tạo & Mô Phỏng</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style3.css">
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div>
+    <div class="logo-text">AES Security Lab</div>
+    <div class="logo-sub">Hệ Thống Đào Tạo & Mô Phỏng Cấp Doanh Nghiệp</div>
+  </div>
+  <div class="header-right">
+    <div class="status-dot"></div>
+    <div class="status-text" style="margin-right: 16px;">Hệ Thống Hoạt Động</div>
+    <button class="btn" onclick="window.location.href='../login/login.html'" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: bold; padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+      <span>⏏</span> Thoát
+    </button>
+  </div>
+</header>
+
+<div class="main-layout">
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Bảng Điều Khiển</div>
+    <div class="nav-item active" onclick="showPage('overview')">
+      <span class="threat-icon">◱</span> Tổng quan
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Mô Đun Tấn Công</div>
+    <div class="nav-item" onclick="showPage('sca')">
+      <span class="threat-icon">⚡</span> 1. Side-Channel
+      <span class="nav-badge badge-med">Trung Bình</span>
+    </div>
+    <div class="nav-item" onclick="showPage('padding')">
+      <span class="threat-icon">🔓</span> 2. Padding Oracle
+      <span class="nav-badge badge-crit">Nghiêm Trọng</span>
+    </div>
+    <div class="nav-item" onclick="showPage('brute')">
+      <span class="threat-icon">🔑</span> 3. Brute-force
+      <span class="nav-badge badge-med">Trung Bình</span>
+    </div>
+    <div class="nav-item" onclick="showPage('crypto')">
+      <span class="threat-icon">🧮</span> 4. Cryptanalysis
+      <span class="nav-badge badge-med">Trung Bình</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Phòng Chống</div>
+    <div class="nav-item" onclick="showPage('summary')">
+      <span class="threat-icon">🛡️</span> Bảng Tổng Kết
+    </div>
+  </div>
+</nav>
+
+<div class="content">
+
+<!-- OVERVIEW -->
+<div class="attack-page active" id="page-overview">
+  <div style="margin-bottom:32px;">
+    <div style="font-size:24px;font-weight:700;color:var(--white);margin-bottom:8px;">
+      Mô Phỏng Tấn Công Khóa AES
+    </div>
+    <div style="font-size:14px;color:var(--text2);max-width:700px;">
+      Hệ thống lab chuyên biệt tập trung vào 4 loại tấn công chính đối với AES. 
+      Khám phá nguyên lý, chạy mô phỏng tương tác và tìm hiểu các chiến lược phòng chống ở cấp độ doanh nghiệp.
+    </div>
+  </div>
+  
+  <div class="stats-row">
+    <div class="stat-card" style="cursor:pointer" onclick="showPage('sca')"><div class="stat-num">Mô Đun 01</div><div class="stat-label">Side-Channel Attacks</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showPage('padding')"><div class="stat-num">Mô Đun 02</div><div class="stat-label">Padding Oracle</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showPage('brute')"><div class="stat-num">Mô Đun 03</div><div class="stat-label">Brute-force / Dictionary</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showPage('crypto')"><div class="stat-num">Mô Đun 04</div><div class="stat-label">Cryptanalysis</div></div>
+  </div>
+</div>
+
+<!-- 1. SIDE-CHANNEL ATTACKS -->
+<div class="attack-page" id="page-sca">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Side-Channel Attacks (SCA) - Timing Analysis</span>
+    </div>
+    <div class="card-body">
+      <div class="theory-box">
+        <strong>Nguyên lý:</strong> Tấn công kênh kề (Side-Channel) không nhắm vào thuật toán toán học của mã hoá mà nhắm vào cách thuật toán được triển khai trên phần cứng. Kẻ tấn công đo lường thời gian thực thi (Timing), tiêu thụ điện năng (Power), hoặc bức xạ điện từ (EM).<br><br>
+        <strong>Mô phỏng Timing Attack:</strong> Khi hệ thống so sánh một MAC hoặc Token bảo mật bằng toán tử <span class="formula">==</span>, quá trình thường kết thúc ngay khi gặp byte sai đầu tiên (early-exit). Kẻ tấn công có thể đo thời gian phản hồi: thời gian càng lâu, số byte đúng ở phần đầu càng nhiều.
+      </div>
+      
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'sca-demo')">Mô Phỏng Tấn Công</div>
+        <div class="tab" onclick="switchTab(this,'sca-defense')">Cách Phòng Chống</div>
+      </div>
+      
+      <div class="tab-content active" id="sca-demo">
+        <div class="input-row">
+          <span class="field-label">Secret Token (Hex):</span>
+          <input type="text" id="sca-secret" value="a3f9c2d1" maxlength="8">
+        </div>
+        <button class="btn btn-attack" onclick="runScaAttack()">Khởi Chạy Timing Attack</button>
+        
+        <div class="terminal" id="sca-term" style="display:none;">
+          <div class="terminal-bar"><span class="terminal-title">timing_attack.log</span></div>
+          <div class="terminal-body" id="sca-log"></div>
+        </div>
+        <div class="result-box" id="sca-result"></div>
+      </div>
+      
+      <div class="tab-content" id="sca-defense">
+        <div class="theory-box success-box">
+          <strong style="color:var(--green2)">Giải pháp phòng chống được khuyến nghị:</strong><br><br>
+          1. <strong>Constant-Time Operations:</strong> Mọi thao tác mật mã hoặc so sánh chuỗi bảo mật phải chạy trong một thời gian cố định, bất kể đầu vào đúng hay sai. Ví dụ trong Python dùng <span class="formula">hmac.compare_digest(a, b)</span>.<br>
+          2. <strong>Thêm nhiễu ngẫu nhiên (Jitter):</strong> Thêm thời gian trễ ngẫu nhiên vào phản hồi để làm lu mờ độ chính xác của quá trình đo lường.<br>
+          3. <strong>Ngăn chặn ảnh hưởng bộ nhớ cache:</strong> Tối ưu mã để tránh các luồng điều khiển phụ thuộc vào dữ liệu bí mật (ngăn chặn các tấn công Cache-timing như Meltdown/Spectre).
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. PADDING ORACLE ATTACKS -->
+<div class="attack-page" id="page-padding">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Padding Oracle Attacks</span>
+      <span class="nav-badge badge-crit" style="margin-left:auto">Nghiêm Trọng</span>
+    </div>
+    <div class="card-body">
+      <div class="theory-box danger-box">
+        <strong style="color:var(--red2)">Nguyên lý:</strong> Lỗ hổng này xảy ra khi hệ thống triển khai mã hoá AES (thường là chế độ CBC) rò rỉ thông tin thông qua việc trả về các thông báo lỗi khác nhau giữa <i>Lỗi giải mã</i> và <i>Lỗi Padding (PKCS#7)</i>.<br><br>
+        Bằng cách liên tục chỉnh sửa Ciphertext và gửi lên máy chủ, kẻ tấn công có thể suy ngược ra trạng thái trung gian của khối mã hoá, từ đó giải mã được toàn bộ Plaintext mà <strong>không cần biết khoá bí mật</strong>.
+      </div>
+      
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'po-demo')">Mô Phỏng Tấn Công</div>
+        <div class="tab" onclick="switchTab(this,'po-defense')">Cách Phòng Chống</div>
+      </div>
+      
+      <div class="tab-content active" id="po-demo">
+        <div class="input-row">
+          <span class="field-label">Plaintext mục tiêu:</span>
+          <input type="text" id="po-pt" value="SECRET_ADMIN_KEY" maxlength="16">
+        </div>
+        <button class="btn btn-attack" id="po-btn" onclick="runPaddingOracle()">Bắt đầu dò Padding Oracle</button>
+        
+        <div class="progress-wrap" id="po-progress" style="display:none">
+          <div class="progress-bar-bg"><div class="progress-bar" id="po-bar"></div></div>
+          <div class="progress-label" id="po-pct">Đang khởi tạo...</div>
+        </div>
+        
+        <div class="terminal" id="po-term" style="display:none;">
+          <div class="terminal-bar"><span class="terminal-title">padding_oracle.log</span></div>
+          <div class="terminal-body" id="po-log"></div>
+        </div>
+        <div class="result-box" id="po-result"></div>
+      </div>
+      
+      <div class="tab-content" id="po-defense">
+        <div class="theory-box success-box">
+          <strong style="color:var(--green2)">Giải pháp phòng chống được khuyến nghị:</strong><br><br>
+          1. <strong>Authenticated Encryption (AEAD):</strong> Chuyển từ AES-CBC sang sử dụng <strong>AES-GCM</strong>. AEAD tự động kiểm tra tính toàn vẹn trước khi giải mã, lập tức từ chối nếu dữ liệu bị thay đổi.<br>
+          2. <strong>Cấu trúc Encrypt-then-MAC:</strong> Nếu buộc phải dùng chế độ CBC, hãy áp dụng MAC (như HMAC-SHA256) trên Ciphertext và xác thực MAC trước khi giải mã.<br>
+          3. <strong>Thông báo lỗi đồng nhất:</strong> Trả về một thông báo lỗi chung cho tất cả các trường hợp lỗi (ví dụ "Decryption failed"), với thời gian phản hồi đồng nhất.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. BRUTE-FORCE / DICTIONARY ATTACKS -->
+<div class="attack-page" id="page-brute">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Brute-Force & Dictionary Attacks</span>
+    </div>
+    <div class="card-body">
+      <div class="theory-box">
+        <strong>Nguyên lý:</strong> Thay vì tìm điểm yếu toán học, phương thức tấn công này khai thác entropy thấp của khóa mã hóa, đặc biệt khi khóa được dẫn xuất từ mật khẩu do con người tạo ra.<br><br>
+        - <strong>Dictionary Attack:</strong> Kiểm tra qua một danh sách các mật khẩu phổ biến được thu thập sẵn.<br>
+        - <strong>Brute-Force:</strong> Thử mọi tổ hợp ký tự có thể có. Mật khẩu yếu sẽ sinh ra khóa (derived key) rất dễ bị bẻ.
+      </div>
+      
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'bf-demo')">Mô Phỏng Tấn Công</div>
+        <div class="tab" onclick="switchTab(this,'bf-defense')">Cách Phòng Chống</div>
+      </div>
+      
+      <div class="tab-content active" id="bf-demo">
+        <div class="input-row">
+          <span class="field-label">Target Ciphertext:</span>
+          <input type="text" id="bf-ct" value="U2FsdGVkX1+..." disabled style="opacity:0.6">
+        </div>
+        <div class="input-row">
+          <span class="field-label">Kích thước từ điển:</span>
+          <select id="bf-dict">
+            <option value="10">Top 10 passwords</option>
+            <option value="50">Top 50 passwords</option>
+            <option value="100">Top 100 passwords</option>
+          </select>
+        </div>
+        <button class="btn btn-attack" id="bf-btn" onclick="runBruteForce()">Khởi chạy Dictionary Attack</button>
+        
+        <div class="terminal" id="bf-term" style="display:none;">
+          <div class="terminal-bar"><span class="terminal-title">brute_force.log</span></div>
+          <div class="terminal-body" id="bf-log"></div>
+        </div>
+        <div class="result-box" id="bf-result"></div>
+      </div>
+      
+      <div class="tab-content" id="bf-defense">
+        <div class="theory-box success-box">
+          <strong style="color:var(--green2)">Giải pháp phòng chống được khuyến nghị:</strong><br><br>
+          1. <strong>Key Derivation Function (KDF) Mạnh Mẽ:</strong> Sử dụng các thuật toán KDF đòi hỏi nhiều tài nguyên tính toán như <strong>Argon2, PBKDF2, hoặc bcrypt</strong> kết hợp số vòng lặp cao. Điều này làm tăng chi phí xử lý đáng kể cho mỗi lần đoán sai.<br>
+          2. <strong>Sử dụng Cryptographic Salt:</strong> Lưu Salt ngẫu nhiên và độ dài đủ lớn cùng với Ciphertext để vô hiệu hóa các cuộc tấn công dùng Rainbow Tables.<br>
+          3. <strong>Rate Limiting & Lockout:</strong> Triển khai cơ chế giới hạn số lần thử trên các hệ thống trực tuyến.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. CRYPTANALYSIS -->
+<div class="attack-page" id="page-crypto">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Cryptanalysis - Meet-in-the-Middle</span>
+    </div>
+    <div class="card-body">
+      <div class="theory-box">
+        <strong>Nguyên lý:</strong> Phân tích mật mã (Cryptanalysis) nhằm vào các điểm yếu cấu trúc. Kỹ thuật <strong>Meet-in-the-Middle (MITM)</strong> chứng minh sự thiếu an toàn của cơ chế mã hoá kép (Double-AES).<br><br>
+        Với thuật toán mã hoá <span class="formula">C = E(k2, E(k1, P))</span>, thay vì phải brute-force 2²⁵⁶ trường hợp, MITM tính mã hoá thuận <span class="formula">E(k1, P)</span> lưu vào bảng băm, sau đó giải mã ngược <span class="formula">D(k2, C)</span> và tìm kiếm sự trùng khớp ở trạng thái trung gian. Phương pháp này giảm độ phức tạp thời gian xuống chỉ còn ~2¹²⁹ thao tác tính toán.
+      </div>
+      
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'crypto-demo')">Mô Phỏng MITM (Key không gian hẹp)</div>
+        <div class="tab" onclick="switchTab(this,'crypto-defense')">Cách Phòng Chống</div>
+      </div>
+      
+      <div class="tab-content active" id="crypto-demo">
+        <div class="theory-box" style="margin-bottom:16px; font-size: 12px; color: var(--text2);">
+          Ghi chú: Mô phỏng này sử dụng không gian khoá 8-bit (256 khả năng) cho K1 và K2 nhằm mục đích trình diễn thời gian thực. Trong thực tế, AES tiêu chuẩn sử dụng khoá 128, 192 hoặc 256-bit.
+        </div>
+        <div class="input-row">
+          <span class="field-label">Target K1 (0-255):</span>
+          <input type="number" id="mitm-input-k1" value="184" min="0" max="255">
+        </div>
+        <div class="input-row">
+          <span class="field-label">Target K2 (0-255):</span>
+          <input type="number" id="mitm-input-k2" value="42" min="0" max="255">
+        </div>
+        <button class="btn btn-attack" id="crypto-btn" onclick="runCryptanalysis()">Bắt đầu phân tích MITM</button>
+        
+        <div class="stats-row" id="crypto-stats" style="display:none">
+          <div class="stat-card"><div class="stat-num" id="mitm-k1">-</div><div class="stat-label">Khoá K1 Xác Định</div></div>
+          <div class="stat-card"><div class="stat-num" id="mitm-k2">-</div><div class="stat-label">Khoá K2 Xác Định</div></div>
+          <div class="stat-card"><div class="stat-num" id="mitm-q">-</div><div class="stat-label">Số Thao Tác Đã Thực Hiện</div></div>
+        </div>
+        <div class="terminal" id="crypto-term" style="display:none;">
+          <div class="terminal-bar"><span class="terminal-title">mitm_analysis.log</span></div>
+          <div class="terminal-body" id="crypto-log"></div>
+        </div>
+        <div class="result-box" id="crypto-result"></div>
+      </div>
+      
+      <div class="tab-content" id="crypto-defense">
+        <div class="theory-box success-box">
+          <strong style="color:var(--green2)">Giải pháp phòng chống được khuyến nghị:</strong><br><br>
+          1. <strong>Sử dụng chuẩn AES-256 duy nhất:</strong> Tránh việc cố tình tự tạo cơ chế mã hoá nhiều lớp không tiêu chuẩn. Một khoá AES-256 duy nhất đã cung cấp mức độ bảo mật vô cùng mạnh mẽ chống lại các tấn công phân tích hiện tại.<br>
+          2. <strong>Mã hóa ba lớp (Nếu bắt buộc):</strong> Nếu hệ thống kiến trúc yêu cầu nhiều lớp (như 3DES cũ), hãy sử dụng 3 khoá độc lập thay vì 2. Dù vậy, AES-256 vẫn là lựa chọn ưu tiên tối ưu nhất.<br>
+          3. <strong>Tuân thủ tiêu chuẩn:</strong> Bản thân AES kháng lại tấn công Differential và Linear Cryptanalysis rất tốt, miễn là bạn áp dụng các chế độ mã hoá có xác thực (GCM) và dùng thư viện được thẩm định.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY & PREVENTION -->
+<div class="attack-page" id="page-summary">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Tổng Kết & Chiến Lược Phòng Chống Định Hướng Doanh Nghiệp</span>
+    </div>
+    <div class="card-body">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Loại Tấn Công</th>
+            <th>Mục Tiêu Khai Thác</th>
+            <th>Biện Pháp Phòng Tuyến Khuyến Nghị</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Side-Channel (SCA)</td>
+            <td>Rò rỉ thông tin vật lý, Timing leak</td>
+            <td>Sử dụng Constant-Time functions (VD: <span class="formula">hmac.compare_digest</span>).</td>
+          </tr>
+          <tr>
+            <td>Padding Oracle</td>
+            <td>Lỗi giải mã trong CBC mode</td>
+            <td>Luôn sử dụng chuẩn <strong>AES-GCM</strong> hoặc cấu trúc Encrypt-then-MAC.</td>
+          </tr>
+          <tr>
+            <td>Brute-force/Dictionary</td>
+            <td>Mật khẩu yếu, dự đoán khoá</td>
+            <td>Áp dụng KDF mạnh như <strong>Argon2, PBKDF2</strong> kết hợp Cryptographic Salt.</td>
+          </tr>
+          <tr>
+            <td>Cryptanalysis</td>
+            <td>Điểm yếu cấu trúc (VD: Double AES)</td>
+            <td>Sử dụng khóa <strong>AES-256</strong> tiêu chuẩn, không tự tạo giao thức mã hóa riêng.</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div class="theory-box success-box" style="margin-top:24px">
+        <strong style="color:var(--green2)">QUY TẮC VÀNG TRONG BẢO MẬT MẬT MÃ:</strong><br><br>
+        <i>"Tuyệt đối không tự phát minh hoặc tự triển khai các thuật toán mật mã riêng. Hãy luôn sử dụng các thư viện chuẩn đã được kiểm chứng chuyên sâu (như libsodium, OpenSSL) và áp dụng cấu hình tiêu chuẩn hiện đại nhất: <strong>AES-256-GCM</strong> cùng quy trình quản lý khoá an toàn."</i>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- content -->
+</div><!-- main-layout -->
+</div><!-- app -->
+
+<script src="attack.js"></script>
+</body>
+</html>

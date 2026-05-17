@@ -1,0 +1,30 @@
+{
+  "name": "new-folder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "AES/main.js",
+
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+
+  "build": {
+    "appId": "com.aes.securitylab",
+    "productName": "AES Security Lab",
+
+    "win": {
+      "target": "nsis"
+    }
+  },
+
+  "devDependencies": {
+    "electron": "^42.0.1",
+    "electron-builder": "^26.8.1"
+  }
+}

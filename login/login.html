@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+
+  <link rel="stylesheet" href="style2.css">
+</head>
+
+<body>
+
+<div style="text-align: center; margin-bottom: 30px; padding: 25px; border-radius: 14px; max-width: 700px; width: 90%; font-family: Arial, sans-serif; line-height: 1.6; background-color: #111318; color: #ddd; border: 1px solid #222; box-shadow: 0 8px 16px rgba(0,0,0,0.5);">
+  <h2 style="margin-top: 0; color: #4f7fff; font-size: 1.2rem;">ĐỀ TÀI:</h2>
+  <h3 style="margin-bottom: 20px; text-transform: uppercase; color: white; font-size: 1.1rem; letter-spacing: 0.5px;">TÌM HIỂU VỀ GIẢI THUẬT MÃ HÓA KHÓA BÍ MẬT AES: GIẢI THUẬT SINH KHÓA PHỤ, MÃ HÓA, GIẢI MÃ, CÁC ĐIỂM YẾU, CÁC DẠNG TẤN CÔNG VÀO AES VÀ PHÒNG CHỐNG. CÀI ĐẶT THỬ NGHIỆM</h3>
+  <div style="display: flex; justify-content: space-around; flex-wrap: wrap; text-align: left; font-size: 0.95rem; border-top: 1px solid #333; padding-top: 20px;">
+    <div style="margin-bottom: 15px;">
+      <p style="margin: 5px 0; color: #4f7fff; font-weight: bold;">Nhóm 1</p>
+      <p style="margin: 5px 0; color: #aaa;">&lt;A48980&gt; Nguyễn Thiệu Tùng</p>
+      <p style="margin: 5px 0; color: #aaa;">&lt;A48746&gt; Nguyễn Nhất Duy</p>
+    </div>
+    <div style="margin-bottom: 15px;">
+      <p style="margin: 5px 0; color: #aaa;"><strong style="color: #4f7fff;">Giảng viên:</strong> Quản Trọng Thế</p>
+      <p style="margin: 5px 0; color: #aaa;"><strong style="color: #4f7fff;">Lớp:</strong> An toàn thông tin.02</p>
+      <p style="margin: 5px 0; color: #aaa;"><strong style="color: #4f7fff;">Mã môn học:</strong> IS345</p>
+    </div>
+  </div>
+</div>
+
+<div class="box">
+
+  <h1>AES Login</h1>
+
+  <input type="text" id="user" placeholder="Username">
+
+  <input type="password" id="pass" placeholder="Password">
+
+  <button onclick="login()">Đăng nhập</button>
+
+  <p>
+    Chưa có tài khoản?
+    <a href="register.html">Đăng ký</a>
+  </p>
+
+</div>
+
+<div style="text-align: center; margin-top: 20px;">
+  <button onclick="window.location.href='../attack/aes_security_lab.html'" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Inter', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+    ⚡ Đi tới trang Attack Demo
+  </button>
+</div>
+
+<script src="login.js"></script>
+
+</body>
+</html>

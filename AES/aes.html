@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AES Demo — Mã hóa khóa bí mật</title>
+
+<link rel="stylesheet" href="style1.css">
+</head>
+
+<body>
+
+<div class="header">
+  <button class="logout-btn" onclick="logout()">🚪 Đăng xuất</button>
+  <h1>Giải thuật mã hóa <span>AES</span></h1>
+  <p>Demo tương tác đầy đủ 6 chế độ: ECB · CBC · CFB · OFB · CTR · GCM — Sinh khóa phụ, S-Box &amp; InvSBox, Các vòng lặp</p>
+  <div class="badge-row">
+    <span class="badge" style="background:var(--blue3);color:var(--blue);border:1px solid rgba(79,127,255,.3)">AES-128/192/256</span>
+    <span class="badge" style="background:var(--green3);color:var(--green);border:1px solid rgba(62,207,142,.3)">6 chế độ hoạt động</span>
+    <span class="badge" style="background:var(--amber3);color:var(--amber);border:1px solid rgba(245,166,35,.3)">Mã hóa &amp; Giải mã thật</span>
+    <span class="badge" style="background:var(--purple3);color:var(--purple);border:1px solid rgba(155,124,255,.3)">GCM AEAD</span>
+  </div>
+</div>
+ 
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('enc')">🔐 Mã hóa / Giải mã</button>
+  <button class="tab" onclick="switchTab('modes')">📐 So sánh chế độ</button>
+  <button class="tab" onclick="switchTab('rounds')">⚙️ Các vòng AES</button>
+  <button class="tab" onclick="switchTab('keyexp')">🔑 Sinh khóa phụ</button>
+  <button class="tab" onclick="switchTab('sbox')">📊 S-Box</button>
+</div>
+ 
+<!-- TAB 1 -->
+<div id="t-enc" class="panel active">
+  <div class="card">
+    <div class="card-title">Chọn chế độ hoạt động</div>
+    <div class="mode-strip">
+      <button class="mode-btn warn" onclick="selectMode('ECB',this)" id="mb-ECB">ECB<span class="warn">⚠</span></button>
+      <button class="mode-btn active" onclick="selectMode('CBC',this)" id="mb-CBC">CBC</button>
+      <button class="mode-btn" onclick="selectMode('CFB',this)" id="mb-CFB">CFB</button>
+      <button class="mode-btn" onclick="selectMode('OFB',this)" id="mb-OFB">OFB</button>
+      <button class="mode-btn" onclick="selectMode('CTR',this)" id="mb-CTR">CTR</button>
+      <button class="mode-btn rec" onclick="selectMode('GCM',this)" id="mb-GCM">GCM<span class="rec">✓</span></button>
+    </div>
+    <div id="mode-desc-box"></div>
+  </div>
+ 
+  <div class="card">
+    <div class="card-title">Đầu vào</div>
+    <div class="row2" style="margin-bottom:10px">
+      <div>
+        <label class="lbl">Văn bản gốc (Plaintext)</label>
+        <textarea id="pt" rows="2" placeholder="Nhập nội dung cần mã hóa...">Hello, AES World! 🔐</textarea>
+      </div>
+      <div>
+        <label class="lbl">Độ dài khóa</label>
+        <select id="keylen" onchange="genKey()">
+          <option value="128">AES-128 (32 hex)</option>
+          <option value="192">AES-192 (48 hex)</option>
+          <option value="256" selected>AES-256 (64 hex)</option>
+        </select>
+        <label class="lbl" style="margin-top:8px">Khóa bí mật (hex)</label>
+        <input type="text" id="k" value="000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"/>
+      </div>
+    </div>
+    <div class="row3" id="extra-params"></div>
+    <div id="gcm-aad-row" style="display:none;margin-top:8px">
+      <label class="lbl">AAD — Additional Authenticated Data (GCM)</label>
+      <input type="text" id="gcm-aad" value="user=admin;session=1"/>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doEncrypt()">🔒 Mã hóa</button>
+      <button class="btn btn-green" onclick="doDecrypt()">🔓 Giải mã</button>
+      <button class="btn btn-ghost" onclick="loadNIST()">📋 NIST Vector</button>
+      <button class="btn btn-ghost" onclick="genKey()">🎲 Tạo khóa mới</button>
+      <button class="btn btn-ghost" onclick="genIV()">🎲 Tạo IV/Nonce mới</button>
+      <button class="btn btn-ghost" onclick="clearAll()">🗑 Xóa</button>
+    </div>
+  </div>
+ 
+  <div class="card">
+    <div class="card-title">Kết quả &nbsp;<span id="res-status"></span></div>
+    <div class="row2">
+      <div>
+        <div class="out-label">Ciphertext (hex)</div>
+        <div class="mono-out" id="res-ct" style="min-height:48px">—</div>
+      </div>
+      <div>
+        <div class="out-label">Plaintext sau giải mã</div>
+        <div class="mono-out" id="res-pt" style="color:var(--green);min-height:48px">—</div>
+      </div>
+    </div>
+    <div id="res-meta" style="margin-top:8px;font-size:11px;color:var(--text2);font-family:var(--mono);line-height:2"></div>
+    <div id="gcm-tag-row" style="display:none;margin-top:8px">
+      <div class="out-label">GCM Authentication Tag (128-bit)</div>
+      <div class="mono-out" id="res-tag" style="color:var(--purple)">—</div>
+    </div>
+  </div>
+ 
+  <div class="row2">
+    <div class="card">
+      <div class="card-title">Plaintext — 16 byte đầu</div>
+      <div class="hex-grid" id="vis-pt"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Ciphertext — 16 byte đầu</div>
+      <div class="hex-grid" id="vis-ct"></div>
+    </div>
+  </div>
+ 
+  <div class="card">
+    <div class="card-title">Sơ đồ luồng — <span id="flow-mode-label">CBC</span></div>
+    <div class="flow" id="flow-diagram"></div>
+  </div>
+</div>
+ 
+<!-- TAB 2 -->
+<div id="t-modes" class="panel">
+  <div class="card">
+    <div class="card-title">So sánh 6 chế độ hoạt động AES</div>
+    <table class="cmp-table">
+      <thead><tr><th>Mode</th><th>Cơ chế</th><th>IV/Nonce</th><th>Xác thực</th><th>Song song</th><th>Lỗi lan</th><th>Ứng dụng</th><th>Mức độ</th></tr></thead>
+      <tbody>
+        <tr><td>ECB</td><td>Block độc lập</td><td>Không</td><td>❌</td><td>✅ Enc+Dec</td><td>Không</td><td>Tránh dùng</td><td><span class="tag tag-err">NGUY HIỂM</span></td></tr>
+        <tr><td>CBC</td><td>XOR CT trước</td><td>IV 128-bit</td><td>❌</td><td>✅ Dec only</td><td>2 block</td><td>File (cũ)</td><td><span class="tag tag-warn">CŨ/+HMAC</span></td></tr>
+        <tr><td>CFB</td><td>Stream từ block</td><td>IV 128-bit</td><td>❌</td><td>✅ Dec only</td><td>1–2 block</td><td>Stream data</td><td><span class="tag tag-warn">KHÁ</span></td></tr>
+        <tr><td>OFB</td><td>Stream từ KS</td><td>IV 128-bit</td><td>❌</td><td>Pre-compute</td><td>Không</td><td>Noisy channel</td><td><span class="tag tag-warn">KHÁ</span></td></tr>
+        <tr><td>CTR</td><td>Counter → KS</td><td>Nonce 96-bit</td><td>❌</td><td>✅ Enc+Dec</td><td>Không</td><td>Random access</td><td><span class="tag tag-warn">TỐT/+MAC</span></td></tr>
+        <tr><td>GCM</td><td>CTR+GHASH</td><td>Nonce 96-bit</td><td>✅ 128-bit</td><td>✅ Enc+Dec</td><td>Không</td><td>TLS1.3, SSH</td><td><span class="tag tag-ok">KHUYẾN NGHỊ</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card" style="border-top:3px solid var(--red)">
+      <div class="card-title" style="color:var(--red)">ECB</div>
+      <div class="flow"><div class="flow-box fb-plain">Pᵢ</div><div class="flow-arrow">→</div><div class="flow-box fb-add">AES(K)</div><div class="flow-arrow">→</div><div class="flow-box fb-cipher">Cᵢ</div></div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:6px">P₁=P₂ ⟹ C₁=C₂. Lộ mẫu dữ liệu. Không có IV. Không bao giờ dùng cho data nhiều block.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--amber)">
+      <div class="card-title" style="color:var(--amber)">CBC</div>
+      <div class="flow"><div class="flow-box fb-iv">IV/Cᵢ₋₁</div><div class="flow-arrow">⊕</div><div class="flow-box fb-plain">Pᵢ</div><div class="flow-arrow">→</div><div class="flow-box fb-add">AES(K)</div><div class="flow-arrow">→</div><div class="flow-box fb-cipher">Cᵢ</div></div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:6px">XOR plaintext với ciphertext trước. Mã hóa tuần tự. Dễ bị Padding Oracle nếu thiếu MAC.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pink)">
+      <div class="card-title" style="color:var(--pink)">CFB</div>
+      <div class="flow"><div class="flow-box fb-iv">IV/Cᵢ₋₁</div><div class="flow-arrow">→</div><div class="flow-box fb-add">AES(K)</div><div class="flow-arrow">⊕</div><div class="flow-box fb-plain">Pᵢ</div><div class="flow-arrow">→</div><div class="flow-box fb-cipher">Cᵢ</div></div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:6px">Stream cipher từ AES. Mã hóa feedback (IV hoặc CT trước) rồi XOR plaintext. Không cần padding.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--cyan)">
+      <div class="card-title" style="color:var(--cyan)">OFB</div>
+      <div class="flow"><div class="flow-box fb-iv">Oᵢ₋₁</div><div class="flow-arrow">→</div><div class="flow-box fb-add">AES(K)</div><div class="flow-arrow">→</div><div class="flow-box fb-xor">Oᵢ</div><div class="flow-arrow">⊕</div><div class="flow-box fb-plain">Pᵢ</div><div class="flow-arrow">→</div><div class="flow-box fb-cipher">Cᵢ</div></div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:6px">Keystream độc lập với plaintext/ciphertext. Lỗi 1 bit không lan sang block khác.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--blue)">
+      <div class="card-title" style="color:var(--blue)">CTR</div>
+      <div class="flow"><div class="flow-box fb-iv">Nonce‖Ctr</div><div class="flow-arrow">→</div><div class="flow-box fb-add">AES(K)</div><div class="flow-arrow">⊕</div><div class="flow-box fb-plain">Pᵢ</div><div class="flow-arrow">→</div><div class="flow-box fb-cipher">Cᵢ</div></div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:6px">Counter tăng dần tạo keystream. Song song hoàn toàn. Random access. Nonce không được tái sử dụng.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--green)">
+      <div class="card-title" style="color:var(--green)">GCM ⭐ Khuyến nghị</div>
+      <div class="flow"><div class="flow-box fb-plain">CTR enc</div><div class="flow-arrow">+</div><div class="flow-box fb-add">GHASH(H,AAD,CT)</div><div class="flow-arrow">→</div><div class="flow-box fb-cipher">CT + Tag</div></div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:6px">AEAD: CTR + xác thực GHASH 128-bit. Phát hiện mọi thay đổi. TLS 1.3. Nonce reuse = thảm họa!</div>
+    </div>
+  </div>
+</div>
+ 
+<!-- TAB 3 -->
+<div id="t-rounds" class="panel">
+  <div class="card">
+    <div class="card-title">Chọn vòng &amp; bước</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Vòng:</div>
+    <div class="pills" id="rnd-pills"></div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Bước:</div>
+    <div class="pills">
+      <button class="step-pill active" onclick="selectStep(0,this)">AddRoundKey</button>
+      <button class="step-pill" onclick="selectStep(1,this)">SubBytes</button>
+      <button class="step-pill" onclick="selectStep(2,this)">ShiftRows</button>
+      <button class="step-pill" onclick="selectStep(3,this)">MixColumns</button>
+    </div>
+    <div class="prog-wrap"><div class="prog-bar" id="prog-bar" style="width:10%"></div></div>
+    <div class="info" id="step-info"></div>
+    <div style="margin-top:12px">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">State matrix 4×4</div>
+      <div class="state-grid" id="state-vis"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">4 bước mã hóa &amp; nghịch đảo giải mã</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px">🔒 MÃ HÓA</div>
+        <div style="display:flex;flex-direction:column;gap:12px;font-size:12px;color:var(--text2);line-height:1.6">
+          <div><b style="color:var(--green)">SubBytes</b> — S[byte] thay thế phi tuyến từng byte qua bảng S-Box 256 phần tử</div>
+          <div><b style="color:var(--pink)">ShiftRows</b> — Dịch vòng TRÁI: hàng i dịch i byte (0,1,2,3)</div>
+          <div><b style="color:var(--purple)">MixColumns</b> — Nhân cột với ma trận [2,3,1,1] trong GF(2⁸). <b style="color:var(--amber)">Bỏ qua vòng 10</b></div>
+          <div><b style="color:var(--amber)">AddRoundKey</b> — XOR state với round key</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px">🔓 GIẢI MÃ (đảo ngược)</div>
+        <div style="display:flex;flex-direction:column;gap:12px;font-size:12px;color:var(--text2);line-height:1.6">
+          <div><b style="color:var(--green)">InvSubBytes</b> — InvS[byte] qua InvSBox. InvSBox[SBox[x]] = x</div>
+          <div><b style="color:var(--pink)">InvShiftRows</b> — Dịch vòng PHẢI: hàng i dịch i byte về phải</div>
+          <div><b style="color:var(--purple)">InvMixColumns</b> — Ma trận nghịch đảo [0e,0b,0d,09] trong GF(2⁸)</div>
+          <div><b style="color:var(--amber)">AddRoundKey</b> — XOR giống mã hóa (XOR tự nghịch đảo)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- TAB 4 -->
+<div id="t-keyexp" class="panel">
+  <div class="card">
+    <div class="card-title">Khóa gốc</div>
+    <div class="row2">
+      <div>
+        <label class="lbl">Khóa (hex)</label>
+        <input type="text" id="kexp-in" value="000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f" oninput="doKeyExp()"/>
+      </div>
+      <div>
+        <label class="lbl">Phiên bản AES</label>
+        <select id="kexp-len" onchange="doKeyExp()">
+          <option value="128">AES-128 — 44 word, 11 round keys</option>
+          <option value="192">AES-192 — 52 word, 13 round keys</option>
+          <option value="256" selected>AES-256 — 60 word, 15 round keys</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doKeyExp()">🔑 Sinh round keys</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('kexp-in').value='2b7e151628aed2a6abf7158809cf4f3c';document.getElementById('kexp-len').value='128';doKeyExp()">NIST-128</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('kexp-in').value='000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f';document.getElementById('kexp-len').value='256';doKeyExp()">NIST-256</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="info">Hàm <strong>g(W)</strong> = SubWord(RotWord(W)) ⊕ Rcon[i/Nk]. AES-256: còn áp SubWord khi i%8=4.</div>
+    <div id="kexp-out" style="margin-top:12px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">So sánh key schedule</div>
+    <table class="cmp-table">
+      <thead><tr><th>Phiên bản</th><th>Key size</th><th>Nk</th><th>Nr</th><th>Total words</th><th>Round keys</th></tr></thead>
+      <tbody>
+        <tr><td>AES-128</td><td>128-bit/16B</td><td>4</td><td>10</td><td>44</td><td>11</td></tr>
+        <tr><td>AES-192</td><td>192-bit/24B</td><td>6</td><td>12</td><td>52</td><td>13</td></tr>
+        <tr><td>AES-256</td><td>256-bit/32B</td><td>8</td><td>14</td><td>60</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+ 
+<!-- TAB 5 -->
+<div id="t-sbox" class="panel">
+  <div class="card">
+    <div class="card-title">Tra cứu S-Box &amp; InvSBox</div>
+    <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">
+      <div>
+        <label class="lbl">Byte đầu vào (hex)</label>
+        <input type="text" id="sbox-in" maxlength="2" value="53" oninput="lookupSBox()" style="width:72px;text-transform:uppercase"/>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div><div class="out-label">S-Box (mã hóa)</div><div style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--green)" id="sbox-res">ED</div></div>
+        <div style="font-size:18px;color:var(--text3)">↔</div>
+        <div><div class="out-label">InvSBox (giải mã)</div><div style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--purple)" id="inv-sbox-res">53</div></div>
+      </div>
+      <div id="sbox-explain" style="font-size:12px;color:var(--text2);line-height:1.7;max-width:260px"></div>
+    </div>
+    <div class="pills">
+      <button class="pill active" onclick="showSBoxTab('fwd',this)">S-Box — mã hóa</button>
+      <button class="pill" onclick="showSBoxTab('inv',this)">InvSBox — giải mã</button>
+    </div>
+    <div id="sbox-tbl-wrap"><div class="sbox-wrap"><table class="sbox-tbl" id="sbox-tbl"></table></div></div>
+    <div id="inv-sbox-tbl-wrap" style="display:none"><div class="sbox-wrap"><table class="sbox-tbl" id="inv-sbox-tbl"></table></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tính chất S-Box</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:12px;color:var(--text2);line-height:1.7">
+      <div><b style="color:var(--text)">Xây dựng từ GF(2⁸)</b><br>1. x⁻¹ trong GF(2⁸) mod p(x)=x⁸+x⁴+x³+x+1<br>2. Biến đổi affine 8-bit với hằng số c=0x63<br>b[i]=x[i]⊕x[(i+4)%8]⊕x[(i+5)%8]⊕x[(i+6)%8]⊕x[(i+7)%8]⊕c[i]</div>
+      <div><b style="color:var(--text)">Tính chất bảo mật</b><br>• Phi tuyến: chống differential &amp; linear cryptanalysis<br>• S[x] ≠ x với mọi x (không điểm cố định)<br>• S[x] ≠ x̄ với mọi x (không phủ định)<br>• InvSBox[SBox[x]] = x (khả nghịch hoàn toàn)</div>
+    </div>
+  </div>
+</div>
+
+
+<script src="script.js"></script>
+</body>
+</html>
