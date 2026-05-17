@@ -15,5 +15,3 @@
 - Xử lý logic & Thuật toán: Vanilla JavaScript (ES6+)
 - Đóng gói ứng dụng: Node.js
 
-## 📝 Khuyến cáo
-Mã nguồn này được xây dựng hoàn toàn cho mục đích giáo dục và nghiên cứu học thuật. Vui lòng không áp dụng trực tiếp các mô phỏng tấn công vào các hệ thống thực tế khi chưa có sự cho phép.
